@@ -3,7 +3,8 @@
   "private": true,
   "main": "./index.js",
   "dependencies": {
-    "lame": "1.1.1"
+    "lame": "1.1.1",
+    "teoria": "1.2.0"
   },
   "devDependencies": {}
 }
