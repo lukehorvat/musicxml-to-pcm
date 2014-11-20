@@ -1,13 +1,6 @@
-var lame = require("lame");
-var wav = require("wav");
-var teoria = require("teoria");
 var stream = require("stream");
-var fs = require("fs");
+var teoria = require("teoria");
 
-var bitsPerSample = 16; // A 16-bit integer will represent each sample.
-var bytesPerSample = bitsPerSample / 8;
-var amplitude = (Math.pow(2, bitsPerSample) / 2) - 1;
-var samplesPerSecond = 44100;
 var beatsPerMinute = 120;
 var beatUnit = 4;
 var notes = [
@@ -28,36 +21,34 @@ var notes = [
   teoria.note("D4", { value: 4 }),
   teoria.note("C4", { value: 4 })
 ];
-var noteIndex = 0;
-var pcmStream = new stream.Readable();
 
-pcmStream._read = function() {
-  var note = notes[noteIndex];
-  var frequency = note.fq();
-  var durationInSeconds = note.durationInSeconds(beatsPerMinute, beatUnit);
-  var totalSamples = samplesPerSecond * durationInSeconds;
+module.exports.newStream = function(bitsPerSample, samplesPerSecond) {
+  var bytesPerSample = bitsPerSample / 8;
+  var amplitude = (Math.pow(2, bitsPerSample) / 2) - 1;
+  var noteIndex = 0;
+  var pcmStream = new stream.Readable();
 
-  // Fill a buffer with all of the PCM audio data samples for this note. Since the
-  // buffer holds 1 byte per slot, and each sample is 2 bytes (a 16-bit integer),
-  // the buffer's capacity needs to be twice the number of samples.
-  var buffer = new Buffer(totalSamples * bytesPerSample);
-  for (var sampleIndex = 0; sampleIndex < totalSamples; sampleIndex++) {
-    var sample = Math.floor(amplitude * Math.sin((2 * Math.PI * frequency * sampleIndex) / samplesPerSecond));
-    buffer.writeInt16LE(sample, sampleIndex * bytesPerSample);
-  }
-  this.push(buffer);
+  pcmStream._read = function() {
+    var note = notes[noteIndex];
+    var frequency = note.fq();
+    var durationInSeconds = note.durationInSeconds(beatsPerMinute, beatUnit);
+    var totalSamples = samplesPerSecond * durationInSeconds;
 
-  noteIndex++;
-  if (noteIndex >= notes.length) {
-    this.push(null); // We're all out of notes! Finish streaming.
-  }
+    // Fill a buffer with all of the PCM audio data samples for this note. Since the
+    // buffer holds 1 byte per slot, and each sample is 2 bytes (a 16-bit integer),
+    // the buffer's capacity needs to be twice the number of samples.
+    var buffer = new Buffer(totalSamples * bytesPerSample);
+    for (var sampleIndex = 0; sampleIndex < totalSamples; sampleIndex++) {
+      var sample = Math.floor(amplitude * Math.sin((2 * Math.PI * frequency * sampleIndex) / samplesPerSecond));
+      buffer.writeInt16LE(sample, sampleIndex * bytesPerSample);
+    }
+    this.push(buffer);
+
+    noteIndex++;
+    if (noteIndex >= notes.length) {
+      this.push(null); // We're all out of notes! Finish streaming.
+    }
+  };
+
+  return pcmStream;
 };
-
-pcmStream
-  .pipe(new lame.Encoder({ channels: 1, bitDepth: bitsPerSample, sampleRate: samplesPerSecond }))
-  .pipe(fs.createWriteStream("test.mp3"))
-  // .pipe(new wav.Writer({ channels: 1, bitDepth: bitsPerSample, sampleRate: samplesPerSecond }))
-  // .pipe(fs.createWriteStream("test.wav"))
-  .on("finish", function() {
-    console.log("Finished!");
-  });
