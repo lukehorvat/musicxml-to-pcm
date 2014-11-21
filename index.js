@@ -1,37 +1,50 @@
 var stream = require("stream");
 var teoria = require("teoria");
+var xml2js = require("xml2js");
 
-var beatsPerMinute = 120;
-var beatUnit = 4;
-var notes = [
-  teoria.note("C4", { value: 4 }),
-  teoria.note("D4", { value: 4 }),
-  teoria.note("E4", { value: 4 }),
-  teoria.note("F4", { value: 4 }),
-  teoria.note("G4", { value: 4 }),
-  teoria.note("A4", { value: 4 }),
-  teoria.note("B4", { value: 4 }),
-  teoria.note("C5", { value: 4 }),
-  teoria.note("C5", { value: 4 }),
-  teoria.note("B4", { value: 4 }),
-  teoria.note("A4", { value: 4 }),
-  teoria.note("G4", { value: 4 }),
-  teoria.note("F4", { value: 4 }),
-  teoria.note("E4", { value: 4 }),
-  teoria.note("D4", { value: 4 }),
-  teoria.note("C4", { value: 4 })
-];
+var xmlParser = new xml2js.Parser({
+  tagNameProcessors: [
+    xml2js.processors.stripPrefix,
+    xml2js.processors.firstCharLowerCase
+  ]
+});
 
-module.exports.newStream = function(bitsPerSample, samplesPerSecond) {
+var parseXml = function(xml, done) {
+  var notes = [];
+
+  xmlParser.parseString(xml, function(err, result) {
+    var part = result["score-partwise"]["part"][0];
+
+    part["measure"].forEach(function(measure) {
+      measure["note"].forEach(function(note) {
+        var pitch = note["pitch"][0];
+        var step = pitch["step"][0];
+        var octave = pitch["octave"][0];
+        notes.push(teoria.note(step + octave, { value: 4 }));
+      });
+    });
+
+    done({
+      notes: notes,
+      beatsPerMinute: 120,
+      beatUnit: 4
+    });
+  });
+};
+
+module.exports.newStream = function(xml, bitsPerSample, samplesPerSecond) {
+  var score;
+  parseXml(xml, function(s) { score = s; }); // Not an async function.
+
   var bytesPerSample = bitsPerSample / 8;
   var amplitude = (Math.pow(2, bitsPerSample) / 2) - 1;
   var noteIndex = 0;
   var pcmStream = new stream.Readable();
 
   pcmStream._read = function() {
-    var note = notes[noteIndex];
+    var note = score.notes[noteIndex];
     var frequency = note.fq();
-    var durationInSeconds = note.durationInSeconds(beatsPerMinute, beatUnit);
+    var durationInSeconds = note.durationInSeconds(score.beatsPerMinute, score.beatUnit);
     var totalSamples = samplesPerSecond * durationInSeconds;
 
     // Fill a buffer with all of the PCM audio data samples for this note. Since the
@@ -45,7 +58,7 @@ module.exports.newStream = function(bitsPerSample, samplesPerSecond) {
     this.push(buffer);
 
     noteIndex++;
-    if (noteIndex >= notes.length) {
+    if (noteIndex >= score.notes.length) {
       this.push(null); // We're all out of notes! Finish streaming.
     }
   };
