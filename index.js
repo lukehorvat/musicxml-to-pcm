@@ -9,8 +9,12 @@ var xmlParser = new xml2js.Parser({
   ]
 });
 
-var parseXml = function(xml, done) {
-  var notes = [];
+var readScore = function(xml) {
+  var score = {
+    notes: [],
+    beatsPerMinute: 120,
+    beatUnit: 4
+  };
 
   xmlParser.parseString(xml, function(err, result) {
     var part = result["score-partwise"]["part"][0];
@@ -20,22 +24,16 @@ var parseXml = function(xml, done) {
         var pitch = note["pitch"][0];
         var step = pitch["step"][0];
         var octave = pitch["octave"][0];
-        notes.push(teoria.note(step + octave, { value: 4 }));
+        score.notes.push(teoria.note(step + octave, { value: 4 }));
       });
     });
-
-    done({
-      notes: notes,
-      beatsPerMinute: 120,
-      beatUnit: 4
-    });
   });
+
+  return score;
 };
 
 module.exports.newStream = function(xml, bitsPerSample, samplesPerSecond) {
-  var score;
-  parseXml(xml, function(s) { score = s; }); // Not an async function.
-
+  var score = readScore(xml);
   var bytesPerSample = bitsPerSample / 8;
   var amplitude = (Math.pow(2, bitsPerSample) / 2) - 1;
   var noteIndex = 0;
