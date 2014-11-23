@@ -1,12 +1,9 @@
 {
-  "name": "app",
+  "name": "musicxml-to-pcm",
   "private": true,
   "main": "./index.js",
   "dependencies": {
-    "lame": "1.1.1",
-    "speaker": "0.2.1",
     "teoria": "1.2.0",
-    "wav": "0.1.2",
     "xml2js": "0.4.4"
   },
   "devDependencies": {}
