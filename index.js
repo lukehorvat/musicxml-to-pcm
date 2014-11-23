@@ -96,6 +96,29 @@ var readScore = function(xml) {
             }(alterEls[0]);
           }
 
+          var typeEls = noteEl["type"];
+          if (!typeEls || typeEls.length == 0) {
+            throw new Error("Note element does not have a type element defined.");
+          }
+          else if (typeEls.length > 1) {
+            throw new Error("Note element has multiple type elements defined.");
+          }
+          else {
+            note.duration = function(typeEl) {
+              switch(typeEl) {
+                case "whole": return 1;
+                case "half": return 2;
+                case "quarter": return 4;
+                case "eighth": return 8;
+                case "16th": return 16;
+                case "32nd": return 32;
+                case "64th": return 64;
+                case "128th": return 128;
+                case "256th": return 256;
+              }
+            }(typeEls[0]);
+          }
+
           measure.notes.push(note);
         });
 
@@ -128,7 +151,7 @@ module.exports.newStream = function(xml, bitsPerSample, samplesPerSecond) {
         var note = measure.notes[noteIndex];
 
         if (note) {
-          var teoriaNote = teoria.note(note.step + note.alter + note.octave, { value: 4 });
+          var teoriaNote = teoria.note(note.step + note.alter + note.octave, { value: note.duration });
           var frequency = teoriaNote.fq();
           var durationInSeconds = teoriaNote.durationInSeconds(score.beatsPerMinute, score.beatUnit);
           var totalSamples = samplesPerSecond * durationInSeconds;
