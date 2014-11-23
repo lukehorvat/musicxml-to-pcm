@@ -1,10 +1,32 @@
 {
   "name": "musicxml-to-pcm",
-  "private": true,
+  "version": "0.0.0",
+  "description": "Convert MusicXML to PCM audio data.",
+  "author": "Luke Horvat",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/lukehorvat/musicxml-to-pcm.git"
+  },
+  "bugs": {
+    "url": "https://github.com/lukehorvat/musicxml-to-pcm/issues"
+  },
   "main": "./index.js",
   "dependencies": {
     "teoria": "1.2.0",
     "xml2js": "0.4.4"
   },
-  "devDependencies": {}
+  "devDependencies": {},
+  "engines": {
+    "node": ">= 0.10.0"
+  },
+  "keywords": [
+    "musicxml",
+    "pcm",
+    "audio",
+    "sound",
+    "data",
+    "sample",
+    "stream"
+  ]
 }
