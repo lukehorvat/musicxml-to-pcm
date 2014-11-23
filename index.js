@@ -10,15 +10,12 @@ var xmlParser = new xml2js.Parser({
 });
 
 var readScore = function(xml) {
-  var score = {
-    parts: [],
-    beatsPerMinute: 120,
-    beatUnit: 4
-  };
+  var score = { parts: [] };
 
   xmlParser.parseString(xml, function(err, result) {
     var scoreEl = result["score-partwise"];
     if (!scoreEl) {
+      // TODO: Add support for score-timewise.
       throw new Error("MusicXML document does not have a partwise score element defined.");
     }
 
@@ -36,7 +33,7 @@ var readScore = function(xml) {
       }
 
       measureEls.forEach(function(measureEl) {
-        var measure = { notes: [] };
+        var measure = { notes: [], beatsPerMinute: 120, beatUnit: 4 }; // TODO: Read BPM from measure element.
 
         var noteEls = measureEl["note"];
         if (!noteEls || noteEls.length == 0) {
@@ -153,7 +150,7 @@ module.exports.newStream = function(xml, bitsPerSample, samplesPerSecond) {
         if (note) {
           var teoriaNote = teoria.note(note.step + note.alter + note.octave, { value: note.duration });
           var frequency = teoriaNote.fq();
-          var durationInSeconds = teoriaNote.durationInSeconds(score.beatsPerMinute, score.beatUnit);
+          var durationInSeconds = teoriaNote.durationInSeconds(measure.beatsPerMinute, measure.beatUnit);
           var totalSamples = samplesPerSecond * durationInSeconds;
 
           // Fill a buffer with all of the PCM audio data samples for this note. Since the
