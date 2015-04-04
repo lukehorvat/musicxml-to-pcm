@@ -22,11 +22,14 @@
   },
   "keywords": [
     "musicxml",
+    "music",
+    "xml",
     "pcm",
     "audio",
     "sound",
     "data",
     "sample",
-    "stream"
+    "stream",
+    "encode"
   ]
 }

@@ -1,3 +1,5 @@
+"use strict";
+
 var stream = require("stream");
 var teoria = require("teoria");
 var xml2js = require("xml2js");
