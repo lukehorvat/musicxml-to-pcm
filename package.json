@@ -12,11 +12,17 @@
     "url": "https://github.com/lukehorvat/musicxml-to-pcm/issues"
   },
   "main": "./index.js",
+  "scripts": {
+    "test": "mocha --require should"
+  },
   "dependencies": {
     "teoria": "1.2.0",
     "xml2js": "0.4.4"
   },
-  "devDependencies": {},
+  "devDependencies": {
+    "mocha": "2.2.1",
+    "should": "5.2.0"
+  },
   "engines": {
     "node": ">= 0.10.0"
   },
