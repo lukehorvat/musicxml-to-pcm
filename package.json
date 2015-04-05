@@ -1,6 +1,6 @@
 {
   "name": "musicxml-to-pcm",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "description": "Convert MusicXML to PCM audio data.",
   "author": "Luke Horvat",
   "license": "MIT",
